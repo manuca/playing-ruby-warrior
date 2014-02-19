@@ -21,8 +21,17 @@ class Player
   end
 
   def set_direction!(warrior)
-    self.direction = :backward if direction.nil?
-    self.direction = :forward  if warrior.feel(direction).wall?
+    if direction.nil?
+      self.direction = :backward 
+      warrior.pivot!
+      true
+    elsif warrior.feel(direction).wall?
+      self.direction = :forward
+      warrior.pivot!
+      true
+    else
+      false
+    end
   end
 
   def needs_rest?(warrior)
@@ -51,7 +60,7 @@ class Player
   end
 
   def play_turn(warrior)
-    set_direction!(warrior)
+    return if set_direction!(warrior)
 
     if warrior.feel(direction).enemy?
       warrior.attack!(direction)
