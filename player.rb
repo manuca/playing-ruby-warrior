@@ -8,7 +8,9 @@ class Player
   attr_accessor :health, :direction
   MAX_HEALTH    = 20
   ATTACK_HEALTH = 12
-  # MIN_ARCHER_ATTACK_HEALTH =
+  ARCHER_DAMAGE = 3
+  ROUNDS_TO_DEFEAT_ARCHER = 5
+  MIN_ARCHER_ATTACK_HEALTH = ARCHER_DAMAGE * ROUNDS_TO_DEFEAT_ARCHER
 
   def receiving_damage?(warrior)
     if !health.nil? && health > warrior.health
@@ -24,7 +26,8 @@ class Player
   end
 
   def needs_rest?(warrior)
-    warrior.health < MAX_HEALTH && !receiving_damage?(warrior)
+    !warrior.feel(direction).stairs? && (warrior.health < MIN_ARCHER_ATTACK_HEALTH) &&
+      !receiving_damage?(warrior)
   end
 
   def attack_or_retreat_strategy(warrior)
