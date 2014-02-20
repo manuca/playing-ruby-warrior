@@ -4,6 +4,16 @@ class Direction
   end
 end
 
+class NilTarget
+  def captive?
+    false
+  end
+
+  def enemy?
+    false
+  end
+end
+
 class Player
   attr_accessor :health, :direction
   MAX_HEALTH    = 20
@@ -21,17 +31,19 @@ class Player
   end
 
   def set_direction!(warrior)
-    if direction.nil?
-      self.direction = :backward 
-      warrior.pivot!
-      true
-    elsif warrior.feel(direction).wall?
-      self.direction = :forward
-      warrior.pivot!
-      true
-    else
-      false
-    end
+    self.direction = :forward
+    false
+    # if direction.nil?
+    #   self.direction = :backward 
+    #   warrior.pivot!
+    #   true
+    # elsif warrior.feel(direction).wall?
+    #   self.direction = :forward
+    #   warrior.pivot!
+    #   true
+    # else
+    #   false
+    # end
   end
 
   def needs_rest?(warrior)
@@ -55,8 +67,22 @@ class Player
     end
   end
 
+  def advance_strategy(warrior)
+    if needs_rest?(warrior)
+      warrior.rest!
+    elsif receiving_damage?(warrior)
+      attack_or_retreat_strategy(warrior)
+    else
+      warrior.walk!(direction)
+    end
+  end
+
   def retreat_strategy(warrior)
     warrior.walk!(Direction.oposite(direction))
+  end
+
+  def nearest_target(warrior)
+    warrior.look(direction).detect {|s| !s.nil? && (s.enemy? || s.captive?) } || NilTarget.new
   end
 
   def play_turn(warrior)
@@ -66,14 +92,12 @@ class Player
       warrior.attack!(direction)
     elsif warrior.feel(direction).captive?
       warrior.rescue!(direction)
+    elsif nearest_target(warrior).captive?
+      advance_strategy(warrior)
+    elsif nearest_target(warrior).enemy?
+      warrior.shoot!
     else
-      if needs_rest?(warrior)
-        warrior.rest!
-      elsif receiving_damage?(warrior)
-        attack_or_retreat_strategy(warrior)
-      else
-        warrior.walk!(direction)
-      end
+      advance_strategy(warrior)
     end
 
     self.health = warrior.health
