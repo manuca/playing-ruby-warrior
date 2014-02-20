@@ -31,19 +31,18 @@ class Player
   end
 
   def set_direction!(warrior)
-    self.direction = :forward
-    false
-    # if direction.nil?
-    #   self.direction = :backward 
-    #   warrior.pivot!
-    #   true
-    # elsif warrior.feel(direction).wall?
-    #   self.direction = :forward
-    #   warrior.pivot!
-    #   true
-    # else
-    #   false
-    # end
+    if direction.nil?
+      # self.direction = :backward 
+      self.direction = :forward
+      warrior.pivot!
+      true
+    elsif warrior.feel(direction).wall?
+      # self.direction = :forward
+      warrior.pivot!
+      true
+    else
+      false
+    end
   end
 
   def needs_rest?(warrior)
