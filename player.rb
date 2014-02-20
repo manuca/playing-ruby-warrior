@@ -15,12 +15,23 @@ class NilTarget
 end
 
 class Player
-  attr_accessor :health, :direction
+  attr_accessor :health
+  attr_reader :direction
+
   MAX_HEALTH    = 20
   ATTACK_HEALTH = 12
   ARCHER_DAMAGE = 3
   ROUNDS_TO_DEFEAT_ARCHER = 5
   MIN_ARCHER_ATTACK_HEALTH = ARCHER_DAMAGE * ROUNDS_TO_DEFEAT_ARCHER
+
+  def initialize
+    # @direction = :forward
+    @hit_wall = false
+  end
+
+  def hit_wall?
+    @hit_wall
+  end
 
   def receiving_damage?(warrior)
     if !health.nil? && health > warrior.health
@@ -30,18 +41,24 @@ class Player
     end
   end
 
-  def set_direction!(warrior)
+  def direction_had_to_change(warrior)
     if direction.nil?
-      # self.direction = :backward 
-      self.direction = :forward
-      warrior.pivot!
-      true
-    elsif warrior.feel(direction).wall?
-      # self.direction = :forward
+      @direction = :forward
       warrior.pivot!
       true
     else
-      false
+      next_space = warrior.feel(direction)
+
+      if next_space.wall?
+        @hit_wall = true
+        warrior.pivot!
+        true
+      elsif !hit_wall? && next_space.stairs?
+        warrior.pivot!
+        true
+      else
+        false
+      end
     end
   end
 
@@ -85,7 +102,7 @@ class Player
   end
 
   def play_turn(warrior)
-    return if set_direction!(warrior)
+    return if direction_had_to_change(warrior)
 
     if warrior.feel(direction).enemy?
       warrior.attack!(direction)
